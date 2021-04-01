@@ -50,18 +50,32 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.tensorflow.lite.examples.detection.customview.OverlayView;
 import org.tensorflow.lite.examples.detection.customview.OverlayView.DrawCallback;
 import org.tensorflow.lite.examples.detection.env.BorderedText;
 import org.tensorflow.lite.examples.detection.env.ImageUtils;
 import org.tensorflow.lite.examples.detection.env.Logger;
+import org.tensorflow.lite.examples.detection.env.Utils;
 import org.tensorflow.lite.examples.detection.tflite.Detector;
 import org.tensorflow.lite.examples.detection.tflite.TFLiteObjectDetectionAPIModel;
 import org.tensorflow.lite.examples.detection.tracking.MultiBoxTracker;
@@ -320,12 +334,6 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
       tracker.getFrameToCanvasMatrix().mapRect(location);
 
       if(x >= location.left && x <= location.right && y >= location.top && y <= location.bottom) {
-//        Log.d("touchedBox", "box location: "
-//                + "left: " + location.left/frameLayout.getWidth()
-//                + " top: " + location.top/frameLayout.getHeight()
-//                + " right: " + location.right/frameLayout.getWidth()
-//                + " bottom: " + location.bottom/frameLayout.getHeight()
-//        );
         selectedBitmap = cropCopyBitmap;
         break;
       }
@@ -336,14 +344,85 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     if(selectedBitmap != null && leftRatio != -1) {
       int width = (int)((rightRatio - leftRatio) * 300);
       int height = (int)((bottomRatio - topRatio) * 300);
-//      Log.d("touchedBox", "box location: "
-//        + "left: " + leftRatio
-//        + " top: " + topRatio
-//        + " right: " + rightRatio
-//        + " bottom: " + bottomRatio
-//      );
+
       Bitmap croppedBitmap = cropBitmap(selectedBitmap, (int)(leftRatio*300), (int)(topRatio*300), width, height);
       toolbarImg.setImageBitmap(croppedBitmap);
+
+      croppedBitmap = Utils.processBitmap(croppedBitmap, 300);
+      Log.d("croppedBitmap", "width: " + croppedBitmap.getWidth() + " height: " + croppedBitmap.getHeight());
+
+      /**
+       * Send the cropped image to the server
+       * **/
+
+      // convert bitmap to 4d array
+      int[] intValues = new int[300 * 300];
+      croppedBitmap.getPixels(intValues, 0, croppedBitmap.getWidth(), 0, 0, croppedBitmap.getWidth(), croppedBitmap.getHeight());
+      int[][][][] fruitArray = new int[1][300][300][3];
+      int pixel = 0;
+
+      for (int i = 0; i < TF_OD_API_INPUT_SIZE; ++i) {
+        for (int j = 0; j < TF_OD_API_INPUT_SIZE; ++j) {
+          int index = 0;
+          final int val = intValues[pixel++];
+          fruitArray[0][i][j][index++] = (((val >> 16) & 0xFF));
+          fruitArray[0][i][j][index++] = (((val >> 8) & 0xFF));
+          fruitArray[0][i][j][index++] = ((val & 0xFF));
+        }
+      }
+
+      RequestQueue requestQueue = Volley.newRequestQueue(this);
+      String url ="http://192.168.55.120:5000"; // ip address
+      JSONObject object = new JSONObject();
+      try {
+        int index = 0;
+        for(int i = 0; i < 300; i++)
+        {
+          for(int j = 0; j < 300; j++)
+          {
+            for(int r = 0; r < 3; r++)
+            {
+              object.put("user" + index++, fruitArray[0][i][j][r]);
+            }
+          }
+        }
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
+
+      // Request a string response from the provided URL.
+      JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, object, new Response.Listener<JSONObject>() {
+        @Override
+        public void onResponse(JSONObject response) {
+          Log.d("onResponse", "Response is: "+ response.toString());
+          // textView.setText("Response is: "+ response.toString());
+        }
+      }, new Response.ErrorListener() {
+        @Override
+        public void onErrorResponse(VolleyError error) {
+          error.printStackTrace();
+          Log.d("onResponse", "Response is: "+ error);
+          // textView.setText("Response is: "+ error);
+        }
+      }) {
+        @Override       //Send Header
+        public Map<String, String> getHeaders() throws AuthFailureError {
+
+          Map<String, String> params = new HashMap<>();
+          params.put("content-type", "application/json");
+
+          return params;
+        }
+      };
+
+      request.setRetryPolicy(new DefaultRetryPolicy(
+              120000,
+              DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+              DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+      ));
+
+      // Add the request to the RequestQueue.
+      requestQueue.add(request);
     }
 
     return super.onTouchEvent(event);
@@ -351,5 +430,9 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
   private Bitmap cropBitmap(Bitmap bitmap, int left, int top, int width, int height) {
     return Bitmap.createBitmap(bitmap, left, top, width, height);
+  }
+
+  private void openFruitOptionDialog() {
+
   }
 }

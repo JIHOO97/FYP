@@ -200,7 +200,7 @@ public class ImageUtils {
       final float scaleFactorX = dstWidth / (float) inWidth;
       final float scaleFactorY = dstHeight / (float) inHeight;
 
-      Log.d("ImageUtils", "scaleFactorX: " + scaleFactorX + " scaleFactorY: " + scaleFactorY + " dstHeight: " + dstHeight + " inHeight: " + inHeight);
+      // Log.d("ImageUtils", "scaleFactorX: " + scaleFactorX + " scaleFactorY: " + scaleFactorY + " dstHeight: " + dstHeight + " inHeight: " + inHeight);
 
       if (maintainAspectRatio) {
         // Scale by minimum factor so that dst is filled completely while
