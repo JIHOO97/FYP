@@ -16,13 +16,11 @@
 
 package org.tensorflow.lite.examples.detection;
 
-import android.app.Activity;
-import android.content.Context;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
@@ -30,46 +28,27 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.RectF;
 import android.graphics.Typeface;
-import android.media.Image;
+import android.graphics.drawable.ColorDrawable;
 import android.media.ImageReader.OnImageAvailableListener;
-import android.net.Uri;
-import android.os.Environment;
 import android.os.SystemClock;
-import android.provider.MediaStore;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
+import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
-import androidx.core.content.FileProvider;
-
-import com.android.volley.AuthFailureError;
-import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-
-import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.tensorflow.lite.examples.detection.adapter.FruitAdapter;
 import org.tensorflow.lite.examples.detection.customview.OverlayView;
 import org.tensorflow.lite.examples.detection.customview.OverlayView.DrawCallback;
 import org.tensorflow.lite.examples.detection.env.BorderedText;
@@ -125,11 +104,9 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   private RectF detectedBox = null;
 
   private FrameLayout frameLayout;
-  private ImageView toolbarImg;
 
   @Override
   public void onPreviewSizeChosen(final Size size, final int rotation) {
-    toolbarImg = findViewById(R.id.toolbar_image);
     frameLayout = findViewById(R.id.container);
 
     final float textSizePx =
@@ -264,16 +241,6 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             trackingOverlay.postInvalidate();
 
             computingDetection = false;
-
-//            runOnUiThread(
-//                new Runnable() {
-//                  @Override
-//                  public void run() {
-//                    showFrameInfo(previewWidth + "x" + previewHeight);
-//                    showCropInfo(cropCopyBitmap.getWidth() + "x" + cropCopyBitmap.getHeight());
-//                    showInference(lastProcessingTimeMs + "ms");
-//                  }
-//                });
           }
         });
   }
@@ -320,109 +287,55 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     int x = (int)event.getX();
     int y = (int)event.getY();
 
-    Bitmap selectedBitmap = null;
-    float leftRatio = -1, topRatio = -1, rightRatio = -1, bottomRatio = -1;
-    for (final Detector.Recognition box : boxes) {
-      final RectF location = box.getLocation(); // location of the box
+    switch(event.getAction())
+    {
+      case MotionEvent.ACTION_DOWN:
+        Log.d("touch", "x: " + x + " y: " + y);
 
-      // there is a problem in output boxes produced by the model
-      leftRatio = (previewHeight - location.bottom) / previewHeight;
-      topRatio = location.left / previewWidth;
-      rightRatio = (previewHeight - location.top) / previewHeight;
-      bottomRatio = location.right / previewWidth;
+        String fruitName = null;
 
-      tracker.getFrameToCanvasMatrix().mapRect(location);
+        Bitmap selectedBitmap = null;
+        float leftRatio = -1, topRatio = -1, rightRatio = -1, bottomRatio = -1;
+        for (final Detector.Recognition box : boxes) {
+          final RectF location = box.getLocation(); // location of the box
 
-      if(x >= location.left && x <= location.right && y >= location.top && y <= location.bottom) {
-        selectedBitmap = cropCopyBitmap;
-        break;
-      }
-    }
+          // there is a problem in output boxes produced by the model
+          leftRatio = (previewHeight - location.bottom) / previewHeight;
+          topRatio = location.left / previewWidth;
+          rightRatio = (previewHeight - location.top) / previewHeight;
+          bottomRatio = location.right / previewWidth;
 
-    // if the object is detected and the box is touched,
-    // crop the image and detect its ripeness
-    if(selectedBitmap != null && leftRatio != -1) {
-      int width = (int)((rightRatio - leftRatio) * 300);
-      int height = (int)((bottomRatio - topRatio) * 300);
+          tracker.getFrameToCanvasMatrix().mapRect(location);
 
-      Bitmap croppedBitmap = cropBitmap(selectedBitmap, (int)(leftRatio*300), (int)(topRatio*300), width, height);
-      toolbarImg.setImageBitmap(croppedBitmap);
-
-      croppedBitmap = Utils.processBitmap(croppedBitmap, 300);
-      Log.d("croppedBitmap", "width: " + croppedBitmap.getWidth() + " height: " + croppedBitmap.getHeight());
-
-      /**
-       * Send the cropped image to the server
-       * **/
-
-      // convert bitmap to 4d array
-      int[] intValues = new int[300 * 300];
-      croppedBitmap.getPixels(intValues, 0, croppedBitmap.getWidth(), 0, 0, croppedBitmap.getWidth(), croppedBitmap.getHeight());
-      int[][][][] fruitArray = new int[1][300][300][3];
-      int pixel = 0;
-
-      for (int i = 0; i < TF_OD_API_INPUT_SIZE; ++i) {
-        for (int j = 0; j < TF_OD_API_INPUT_SIZE; ++j) {
-          int index = 0;
-          final int val = intValues[pixel++];
-          fruitArray[0][i][j][index++] = (((val >> 16) & 0xFF));
-          fruitArray[0][i][j][index++] = (((val >> 8) & 0xFF));
-          fruitArray[0][i][j][index++] = ((val & 0xFF));
-        }
-      }
-
-      RequestQueue requestQueue = Volley.newRequestQueue(this);
-      String url ="http://192.168.55.120:5000"; // ip address
-      JSONObject object = new JSONObject();
-      try {
-        int index = 0;
-        for(int i = 0; i < 300; i++)
-        {
-          for(int j = 0; j < 300; j++)
-          {
-            for(int r = 0; r < 3; r++)
-            {
-              object.put("user" + index++, fruitArray[0][i][j][r]);
-            }
+          if(x >= location.left && x <= location.right && y >= location.top && y <= location.bottom) {
+            fruitName = box.getTitle();
+            selectedBitmap = cropCopyBitmap;
+            break;
           }
         }
-      } catch (JSONException e) {
-        e.printStackTrace();
-      }
 
-      // Request a string response from the provided URL.
-      JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, object, new Response.Listener<JSONObject>() {
-        @Override
-        public void onResponse(JSONObject response) {
-          Log.d("onResponse", "Response is: "+ response.toString());
-          // textView.setText("Response is: "+ response.toString());
+        // if the object is detected and the box is touched,
+        // crop the image and detect its ripeness
+        if(selectedBitmap != null && leftRatio != -1) {
+          int width = (int) ((rightRatio - leftRatio) * 300);
+          int height = (int) ((bottomRatio - topRatio) * 300);
+
+          Bitmap croppedBitmap = cropBitmap(selectedBitmap, (int) (leftRatio * 300), (int) (topRatio * 300), width, height);
+
+          // make the size of the cropped image to 300x300 to fit our model
+          croppedBitmap = Utils.processBitmap(croppedBitmap, 300);
+
+          // save the current screen bitmap
+          ImageUtils.saveBitmap(cropCopyBitmap, "screenshot.jpg");
+          ImageUtils.saveBitmap(croppedBitmap, "croppedFruit.jpg");
+
+          // pass ratios to RipenessActivity
+          float[] croppedBoxRatios = {leftRatio, topRatio};
+
+          isSelectedFruitTrueDialog(fruitName, croppedBoxRatios);
         }
-      }, new Response.ErrorListener() {
-        @Override
-        public void onErrorResponse(VolleyError error) {
-          error.printStackTrace();
-          Log.d("onResponse", "Response is: "+ error);
-          // textView.setText("Response is: "+ error);
-        }
-      }) {
-        @Override       //Send Header
-        public Map<String, String> getHeaders() throws AuthFailureError {
 
-          Map<String, String> params = new HashMap<>();
-          params.put("content-type", "application/json");
-
-          return params;
-        }
-      };
-
-      request.setRetryPolicy(new DefaultRetryPolicy(
-              120000,
-              DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-              DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
-      ));
-
-      // Add the request to the RequestQueue.
-      requestQueue.add(request);
+        break;
     }
 
     return super.onTouchEvent(event);
@@ -432,7 +345,76 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     return Bitmap.createBitmap(bitmap, left, top, width, height);
   }
 
-  private void openFruitOptionDialog() {
+  private void isSelectedFruitTrueDialog(String fruit, float[] croppedBoxRatios) {
+    final Dialog dialog = new Dialog(this);
+    dialog.setContentView(R.layout.check_fruit_dialog);
+    makeDialogBackgroundTransparent(dialog);
 
+    TextView content = dialog.findViewById(R.id.check_fruit_dialog_content);
+    content.setText("Are you sure this is an " + fruit + "?");
+
+    Button selectedFruitFalse = dialog.findViewById(R.id.check_fruit_dialog_no);
+    // if the detected fruit is wrong
+    selectedFruitFalse.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        dialog.dismiss();
+
+        String[] fruits = {"Apple",
+                "Peach",
+                "Pomegranate",
+                "Lemon",
+                "Mango",
+                "Orange",
+                "Pear",
+                "Strawberry",
+                "Tomato",
+                "Watermelon"};
+
+        openFruitOptionDialog(fruits);
+      }
+    });
+
+    Button selectedFruitTrue = dialog.findViewById(R.id.check_fruit_dialog_yes);
+    // if the detected fruit is correct
+    selectedFruitTrue.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        // send cropped data to the server
+        goToRipenessActivity(fruit, croppedBoxRatios);
+        dialog.dismiss();
+      }
+    });
+
+    dialog.show();
+  }
+
+  private void openFruitOptionDialog(String[] fruits) {
+    final Dialog dialog = new Dialog(this);
+    dialog.setContentView(R.layout.fruit_dialog_list_view);
+    makeDialogBackgroundTransparent(dialog);
+    ListView listView = dialog.findViewById(R.id.lv_assignment_users);
+    TextView tv = dialog.findViewById(R.id.tv_popup_title);
+    ArrayAdapter arrayAdapter = new FruitAdapter(this, R.layout.fruit_dialog_list_view, fruits);
+    listView.setAdapter(arrayAdapter);
+    listView.setOnItemClickListener((adapterView, view, which, l) -> {
+      Log.d("Dialog", "showAssignmentsList: " + fruits[which]);
+      // TODO : Listen to click callbacks at the position
+      // send the fruitBitmap to the server
+    });
+    dialog.show();
+  }
+
+  private void makeDialogBackgroundTransparent(Dialog dialog) {
+    if (dialog.getWindow() != null) {
+      dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // this is optional
+    }
+  }
+
+  private void goToRipenessActivity(String fruit, float[] croppedBoxRatios) {
+    Intent intent = new Intent(this, RipenessActivity.class);
+    intent.putExtra("fruitName", fruit);
+    intent.putExtra("croppedBoxRatios", croppedBoxRatios);
+    startActivity(intent);
   }
 }

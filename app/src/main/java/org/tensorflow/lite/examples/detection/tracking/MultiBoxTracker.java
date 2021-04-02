@@ -140,7 +140,7 @@ public class MultiBoxTracker {
 
     final float heightMultiplier = canvas.getHeight() / (float) (rotated ? frameWidth : frameHeight);
 
-    Log.d("canvas", "Canvas Length: " + "width: " + canvas.getWidth() + " height: " + canvas.getHeight() + " multiplier: " + multiplier + " rotated: " + rotated); // width and height of the canvas which is the same as in AutoFitTextureView
+    // Log.d("canvas", "Canvas Length: " + "width: " + canvas.getWidth() + " height: " + canvas.getHeight() + " multiplier: " + multiplier + " rotated: " + rotated); // width and height of the canvas which is the same as in AutoFitTextureView
 
 //    frameToCanvasMatrix =
 //        ImageUtils.getTransformationMatrix(
@@ -166,8 +166,8 @@ public class MultiBoxTracker {
       getFrameToCanvasMatrix().mapRect(trackedPos);
       boxPaint.setColor(recognition.color);
 
-      Log.d("trackedPos", "left: " + trackedPos.left + " top: " + trackedPos.top + " right: " + trackedPos.right + " bottom: " + trackedPos.bottom);
-      Log.d("frameLength", "MultiBoxTracker frame: " + "frameWidth: " + frameWidth + " frameHeight: " + frameHeight);
+      // Log.d("trackedPos", "left: " + trackedPos.left + " top: " + trackedPos.top + " right: " + trackedPos.right + " bottom: " + trackedPos.bottom);
+      // Log.d("frameLength", "MultiBoxTracker frame: " + "frameWidth: " + frameWidth + " frameHeight: " + frameHeight);
 
       float cornerSize = Math.min(trackedPos.width(), trackedPos.height()) / 8.0f;
       canvas.drawRoundRect(trackedPos, cornerSize, cornerSize, boxPaint);
