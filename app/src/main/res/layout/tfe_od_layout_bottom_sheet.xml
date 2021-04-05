@@ -24,8 +24,7 @@
             android:id="@+id/bottom_sheet_arrow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:src="@drawable/icn_chevron_up" />
+            android:layout_gravity="center"/>
 
     </LinearLayout>
 
@@ -131,8 +130,7 @@
             <ImageView
                 android:id="@+id/minus"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_baseline_remove" />
+                android:layout_height="wrap_content" />
 
             <TextView
                 android:id="@+id/threads"
@@ -147,8 +145,7 @@
             <ImageView
                 android:id="@+id/plus"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_baseline_add" />
+                android:layout_height="wrap_content" />
         </LinearLayout>
     </RelativeLayout>
 

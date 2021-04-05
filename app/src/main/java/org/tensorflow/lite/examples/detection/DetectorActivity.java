@@ -70,7 +70,9 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   private static final int TF_OD_API_INPUT_SIZE = 300;
   private static final boolean TF_OD_API_IS_QUANTIZED = false;
   private static final String TF_OD_API_MODEL_FILE = "fyp_metadata_test_2.tflite";
+  // private static final String TF_OD_API_MODEL_FILE = "yolo-fastest_metadata.tflite";
   private static final String TF_OD_API_LABELS_FILE = "label_map.txt";
+  // private static final String TF_OD_API_LABELS_FILE = "classes.txt";
   private static final DetectorMode MODE = DetectorMode.TF_OD_API;
   // Minimum detection confidence to track a detection.
   private static final float MINIMUM_CONFIDENCE_TF_OD_API = 0.85f;
@@ -296,43 +298,45 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
         Bitmap selectedBitmap = null;
         float leftRatio = -1, topRatio = -1, rightRatio = -1, bottomRatio = -1;
-        for (final Detector.Recognition box : boxes) {
-          final RectF location = box.getLocation(); // location of the box
+        if(boxes != null) {
+          for (final Detector.Recognition box : boxes) {
+            final RectF location = box.getLocation(); // location of the box
 
-          // there is a problem in output boxes produced by the model
-          leftRatio = (previewHeight - location.bottom) / previewHeight;
-          topRatio = location.left / previewWidth;
-          rightRatio = (previewHeight - location.top) / previewHeight;
-          bottomRatio = location.right / previewWidth;
+            // there is a problem in output boxes produced by the model
+            leftRatio = (previewHeight - location.bottom) / previewHeight;
+            topRatio = location.left / previewWidth;
+            rightRatio = (previewHeight - location.top) / previewHeight;
+            bottomRatio = location.right / previewWidth;
 
-          tracker.getFrameToCanvasMatrix().mapRect(location);
+            tracker.getFrameToCanvasMatrix().mapRect(location);
 
-          if(x >= location.left && x <= location.right && y >= location.top && y <= location.bottom) {
-            fruitName = box.getTitle();
-            selectedBitmap = cropCopyBitmap;
-            break;
+            if (x >= location.left && x <= location.right && y >= location.top && y <= location.bottom) {
+              fruitName = box.getTitle();
+              selectedBitmap = cropCopyBitmap;
+              break;
+            }
           }
-        }
 
-        // if the object is detected and the box is touched,
-        // crop the image and detect its ripeness
-        if(selectedBitmap != null && leftRatio != -1) {
-          int width = (int) ((rightRatio - leftRatio) * 300);
-          int height = (int) ((bottomRatio - topRatio) * 300);
+          // if the object is detected and the box is touched,
+          // crop the image and detect its ripeness
+          if (selectedBitmap != null && leftRatio != -1) {
+            int width = (int) ((rightRatio - leftRatio) * 300);
+            int height = (int) ((bottomRatio - topRatio) * 300);
 
-          Bitmap croppedBitmap = cropBitmap(selectedBitmap, (int) (leftRatio * 300), (int) (topRatio * 300), width, height);
+            Bitmap croppedBitmap = cropBitmap(selectedBitmap, (int) (leftRatio * 300), (int) (topRatio * 300), width, height);
 
-          // make the size of the cropped image to 300x300 to fit our model
-          croppedBitmap = Utils.processBitmap(croppedBitmap, 300);
+            // make the size of the cropped image to 300x300 to fit our model
+            croppedBitmap = Utils.processBitmap(croppedBitmap, 300);
 
-          // save the current screen bitmap
-          ImageUtils.saveBitmap(cropCopyBitmap, "screenshot.jpg");
-          ImageUtils.saveBitmap(croppedBitmap, "croppedFruit.jpg");
+            // save the current screen bitmap
+            ImageUtils.saveBitmap(cropCopyBitmap, "screenshot.jpg");
+            ImageUtils.saveBitmap(croppedBitmap, "croppedFruit.jpg");
 
-          // pass ratios to RipenessActivity
-          float[] croppedBoxRatios = {leftRatio, topRatio};
+            // pass ratios to RipenessActivity
+            float[] croppedBoxRatios = {leftRatio, topRatio};
 
-          isSelectedFruitTrueDialog(fruitName, croppedBoxRatios);
+            isSelectedFruitTrueDialog(fruitName, croppedBoxRatios);
+          }
         }
 
         break;
@@ -362,16 +366,11 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
         String[] fruits = {"Apple",
                 "Peach",
-                "Pomegranate",
-                "Lemon",
                 "Mango",
                 "Orange",
-                "Pear",
-                "Strawberry",
-                "Tomato",
-                "Watermelon"};
+                "Tomato"};
 
-        openFruitOptionDialog(fruits);
+        openFruitOptionDialog(fruits, croppedBoxRatios);
       }
     });
 
@@ -389,7 +388,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     dialog.show();
   }
 
-  private void openFruitOptionDialog(String[] fruits) {
+  private void openFruitOptionDialog(String[] fruits, float[] croppedBoxRatios) {
     final Dialog dialog = new Dialog(this);
     dialog.setContentView(R.layout.fruit_dialog_list_view);
     makeDialogBackgroundTransparent(dialog);
@@ -399,8 +398,9 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     listView.setAdapter(arrayAdapter);
     listView.setOnItemClickListener((adapterView, view, which, l) -> {
       Log.d("Dialog", "showAssignmentsList: " + fruits[which]);
-      // TODO : Listen to click callbacks at the position
       // send the fruitBitmap to the server
+      goToRipenessActivity(fruits[which], croppedBoxRatios);
+      dialog.dismiss();
     });
     dialog.show();
   }

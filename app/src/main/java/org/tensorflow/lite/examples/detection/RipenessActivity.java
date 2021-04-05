@@ -1,14 +1,23 @@
 package org.tensorflow.lite.examples.detection;
 
+import android.app.Dialog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,6 +34,8 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.tensorflow.lite.examples.detection.adapter.FruitAdapter;
+import org.tensorflow.lite.examples.detection.dialog.InformationDialog;
 import org.tensorflow.lite.examples.detection.dialog.LoadingDialog;
 import org.tensorflow.lite.examples.detection.env.Utils;
 
@@ -33,12 +44,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RipenessActivity extends AppCompatActivity {
-    private static final int INPUT_SIZE = 300;
+    private static final int INPUT_SIZE = 150;
     private static final int MAX_TIMEOUT_DURATION = 120000;
 
     private ImageView screenImage;
     private RequestQueue mQueue;
     private LoadingDialog loadingDialog;
+    private Dialog informationDialog;
+    private ToggleButton toggleButton;
     private Bitmap ripenessBitmap;
     private float[] croppedBoxRatios;
     private Paint paint;
@@ -48,11 +61,26 @@ public class RipenessActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.ripeness_layout);
 
+        String fruitName = getIntent().getStringExtra("fruitName");
+        croppedBoxRatios = getIntent().getFloatArrayExtra("croppedBoxRatios");
+
         loadingDialog = new LoadingDialog(this);
         loadingDialog.startLoadingDialog();
 
-        String fruitName = getIntent().getStringExtra("fruitName");
-        croppedBoxRatios = getIntent().getFloatArrayExtra("croppedBoxRatios");
+        informationDialog = new Dialog(this);
+
+        // show information dialog
+        toggleButton = (ToggleButton) findViewById(R.id.information_toggle_button) ;
+        toggleButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(toggleButton.isChecked()) {
+                    openFruitOptionDialog(fruitName);
+                } else {
+                    dismissInformationDialog();
+                }
+            }
+        });
 
         screenImage = (ImageView) findViewById(R.id.screen_imageview);
         String screenShotFileName = "screenshot.jpg";
@@ -64,7 +92,7 @@ public class RipenessActivity extends AppCompatActivity {
         String croppedFruitFileName = "croppedFruit.jpg";
         Bitmap croppedFruitBitmap = loadFruitBitmap(croppedFruitFileName);
         int[][][][] fruitBitmapToArray = getFruitArray(croppedFruitBitmap);
-        JSONObject fruitArrayToObject = getFruitJSONObject(fruitBitmapToArray);
+        JSONObject fruitArrayToObject = getFruitJSONObject(fruitBitmapToArray, fruitName);
 
         // send request to server
         mQueue = Volley.newRequestQueue(this);
@@ -87,12 +115,12 @@ public class RipenessActivity extends AppCompatActivity {
     }
 
     private int[][][][] getFruitArray(Bitmap croppedFruitBitmap) {
-        int[] croppedFruitPixels = new int[300 * 300];
-        croppedFruitBitmap = Utils.processBitmap(croppedFruitBitmap, 300);
+        int[] croppedFruitPixels = new int[INPUT_SIZE * INPUT_SIZE];
+        croppedFruitBitmap = Utils.processBitmap(croppedFruitBitmap, INPUT_SIZE);
         croppedFruitBitmap.getPixels(croppedFruitPixels, 0, croppedFruitBitmap.getWidth(), 0, 0, croppedFruitBitmap.getWidth(), croppedFruitBitmap.getHeight());
 
         int pixel = 0;
-        int[][][][] ripenessInputArray = new int[1][300][300][3];
+        int[][][][] ripenessInputArray = new int[1][INPUT_SIZE][INPUT_SIZE][3];
 
         for (int i = 0; i < INPUT_SIZE; ++i) {
             for (int j = 0; j < INPUT_SIZE; ++j) {
@@ -101,19 +129,20 @@ public class RipenessActivity extends AppCompatActivity {
                 ripenessInputArray[0][i][j][index++] = (((val >> 16) & 0xFF));
                 ripenessInputArray[0][i][j][index++] = (((val >> 8) & 0xFF));
                 ripenessInputArray[0][i][j][index++] = ((val & 0xFF));
+                // Log.d("RipenessFruitArray", "[" + )
             }
         }
 
         return ripenessInputArray;
     }
 
-    private JSONObject getFruitJSONObject(int[][][][] ripenessInputArray) {
+    private JSONObject getFruitJSONObject(int[][][][] ripenessInputArray, String fruitName) {
         JSONObject object = new JSONObject();
         try {
             int index = 0;
-            for(int i = 0; i < 300; i++)
+            for(int i = 0; i < INPUT_SIZE; i++)
             {
-                for(int j = 0; j < 300; j++)
+                for(int j = 0; j < INPUT_SIZE; j++)
                 {
                     for(int r = 0; r < 3; r++)
                     {
@@ -121,6 +150,7 @@ public class RipenessActivity extends AppCompatActivity {
                     }
                 }
             }
+            object.put("fruitName", fruitName);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -167,6 +197,7 @@ public class RipenessActivity extends AppCompatActivity {
             @Override
             public void onErrorResponse(VolleyError error) {
                 error.printStackTrace();
+                loadingDialog.dismissDialog();
                 Log.d("RipenessServer", "Error: " + error);
             }
         }) {
@@ -197,11 +228,87 @@ public class RipenessActivity extends AppCompatActivity {
         }
 
         float floatRipePercentage = Float.parseFloat(ripePercentage);
-        floatRipePercentage = (float) ((float)Math.round(floatRipePercentage * 10000d) / 10000d);
+        floatRipePercentage = (float) ((float)Math.floor(floatRipePercentage * 1000d) / 1000d);
         floatRipePercentage *= 100;
 
         ripePercentage = String.valueOf(floatRipePercentage);
 
         return ripePercentage + "%";
+    }
+
+    private void openFruitOptionDialog(String fruitName) {
+        informationDialog.setContentView(R.layout.information_layout);
+        makeDialogBackgroundTransparent(informationDialog);
+        enableOutsideTouchOnDialog();
+
+        // set text according to the fruit type
+        TextView informationUnripeFruitName = (TextView) informationDialog.findViewById(R.id.information_unripe_fruit_name);
+        TextView informationUnripeContent = (TextView) informationDialog.findViewById(R.id.information_unripe_content);
+        TextView informationGoodFruitName = (TextView) informationDialog.findViewById(R.id.information_good_fruit_name);
+        TextView informationGoodContent = (TextView) informationDialog.findViewById(R.id.information_good_content);
+
+        String unripeFruitName = null, unripeContent = null, goodFruitName = null, goodContent = null;
+
+        switch(fruitName) {
+            case "Apple":
+                unripeFruitName = "Unripe apple may be";
+                unripeContent = "- Toxic \n- Bad for pancrease \n- Sour";
+                goodFruitName = "How are apples good for your health?";
+                goodContent = "- Helps with weight loss \n- Lowers risk of heart disease \n- Lowers risk of diabetes";
+
+                break;
+            case "Orange":
+                unripeFruitName = "Unripe orange is generally safe to eat, but eating too many oranges may be";
+                unripeContent = "- Cause abdominal cramps\n- Lead to diarrhea";
+                goodFruitName = "How are oranges good for your health?";
+                goodContent = "- High Vitamin C\n- Healthy immune system\n- Prevents skin damange\n- Lowers cholesterol\n- Controls blood sugar level";
+
+                break;
+            case "Peach":
+
+
+                break;
+            case "Tomato":
+                break;
+            case "Mango":
+                break;
+        }
+
+        if(unripeFruitName != null) {
+            informationUnripeFruitName.setText(unripeFruitName);
+            informationUnripeContent.setText(unripeContent);
+            informationGoodFruitName.setText(goodFruitName);
+            informationGoodContent.setText(goodContent);
+        }
+
+        informationDialog.show();
+    }
+
+    private void dismissInformationDialog() {
+        informationDialog.dismiss();
+    }
+
+    private void makeDialogBackgroundTransparent(Dialog dialog) {
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // this is optional
+        }
+    }
+
+    private void enableOutsideTouchOnDialog() {
+        getRootView().post(new Runnable() {
+            @Override
+            public void run() {
+                Window dialogWindow = informationDialog.getWindow();
+                // Make the dialog possible to be outside touch
+                dialogWindow.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL);
+                dialogWindow.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+                getRootView().invalidate();
+            }
+        });
+    }
+
+    private View getRootView() {
+        return getWindow().getDecorView().getRootView();
     }
 }
