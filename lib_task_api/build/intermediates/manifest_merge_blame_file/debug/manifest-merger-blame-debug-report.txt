@@ -6,8 +6,8 @@
 6
 7    <uses-sdk
 8        android:minSdkVersion="21"
-8-->D:\fyp objectdetection\examples\lite\examples\object_detection\android\lib_task_api\src\main\AndroidManifest.xml
+8-->C:\Users\jinge\Documents\FYP\fyp_final\FYP\lib_task_api\src\main\AndroidManifest.xml
 9        android:targetSdkVersion="28" />
-9-->D:\fyp objectdetection\examples\lite\examples\object_detection\android\lib_task_api\src\main\AndroidManifest.xml
+9-->C:\Users\jinge\Documents\FYP\fyp_final\FYP\lib_task_api\src\main\AndroidManifest.xml
 10
 11</manifest>

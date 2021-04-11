@@ -9,6 +9,7 @@
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="#fecb3a"
         android:layout_above="@id/bottom_navigation"/>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -19,6 +20,6 @@
         app:menu="@menu/bottom_navigation"
         app:itemIconTint="@drawable/navigation_selector"
         app:itemTextColor="@drawable/navigation_selector"
-        android:background="?android:attr/windowBackground"/>
+        android:background="#ffffff"/>
 
 </RelativeLayout>

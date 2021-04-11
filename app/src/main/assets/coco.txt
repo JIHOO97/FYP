@@ -4,7 +4,7 @@ Pomegranate
 Lemon
 Mango
 Orange
-pear
+Pear
 Strawberry
 Tomato
 Watermelon
