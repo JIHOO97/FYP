@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:src="@drawable/fruits"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
+            android:alpha="0.4"/>
+
+        <TextView
+            android:id="@+id/ripeness_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="20dp"
+            android:fontFamily="@font/acme"
+            android:text="Ripeness"
+            android:textColor="#DF4035"
+            android:textSize="40sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/ripeness_text"
+            android:layout_marginLeft="20dp"
+            android:fontFamily="@font/acme"
+            android:text="Detection"
+            android:textColor="#CF5A07"
+            android:textSize="30sp" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:adjustViewBounds="true"
+        android:layout_marginTop="-20dp"
+        android:scaleType="centerCrop"
+        android:background="@drawable/starting_background_bottom">
+
+        <ImageView
+            android:id="@+id/real_time"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:src="@drawable/camera_icon"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="50dp"/>
+
+        <TextView
+            android:id="@+id/real_time_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/real_time"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="5dp"
+            android:fontFamily="@font/acme"
+            android:text="Real  Time"
+            android:textColor="#000" />
+
+        <ImageView
+            android:id="@+id/gallery"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:src="@drawable/gallery_icon"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="30dp"
+            android:layout_below="@+id/real_time_text"/>
+
+        <TextView
+            android:id="@+id/gallery_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/gallery"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="5dp"
+            android:fontFamily="@font/acme"
+            android:text="Gallery"
+            android:textColor="#000" />
+
+    </RelativeLayout>
+
+</LinearLayout>

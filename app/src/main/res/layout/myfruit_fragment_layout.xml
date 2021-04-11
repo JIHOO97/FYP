@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/my_fruit_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/acme"
+        android:text="Recently Detected Fruits"
+        android:textColor="#F44336"
+        android:textSize="26sp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp"
+        android:elevation="10dp"
+        android:background="#E9E9E9"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/myfruit_recyclerview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/my_fruit_text"
+        android:layout_marginTop="20dp"
+        android:scrollbars="none" />
+
+    <TextView
+        android:id="@+id/no_detected_fruit_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:fontFamily="@font/acme"
+        android:text="You have no recently detected fruit"
+        android:textColor="#009688"
+        android:textSize="18sp" />
+
+</RelativeLayout>

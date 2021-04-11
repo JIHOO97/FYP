@@ -61,6 +61,7 @@ dependencies {
     interpreterImplementation project(":lib_interpreter")
     taskApiImplementation project(":lib_task_api")
     implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'com.android.support:design:28.0.0'
     implementation 'androidx.coordinatorlayout:coordinatorlayout:1.0.0'
     implementation 'com.google.android.material:material:1.0.0'
 
@@ -71,4 +72,11 @@ dependencies {
 
     // volley
     implementation 'com.android.volley:volley:1.2.0'
+
+    // dots indicator (viewpager)
+    implementation 'com.tbuonomo.andrui:viewpagerdotsindicator:3.0.3'
+
+    // viewpager2 and circle indicator
+    implementation 'androidx.viewpager2:viewpager2:1.0.0'
+    implementation 'me.relex:circleindicator:2.1.6'
 }

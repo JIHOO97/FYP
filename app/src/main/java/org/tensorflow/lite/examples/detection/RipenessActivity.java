@@ -1,6 +1,7 @@
 package org.tensorflow.lite.examples.detection;
 
 import android.app.Dialog;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -9,16 +10,16 @@ import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -34,11 +35,10 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.tensorflow.lite.examples.detection.adapter.FruitAdapter;
-import org.tensorflow.lite.examples.detection.dialog.InformationDialog;
 import org.tensorflow.lite.examples.detection.dialog.LoadingDialog;
 import org.tensorflow.lite.examples.detection.env.Utils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -192,6 +192,9 @@ public class RipenessActivity extends AppCompatActivity {
                 Canvas canvas = new Canvas(ripenessBitmap);
                 canvas.drawText("Ripeness is: " + ripeness, leftRatio*300, topRatio*300, paint);
                 screenImage.setImageBitmap(ripenessBitmap);
+
+                // save screenImage to sharedpreference
+                saveBitmapToSharedPreference(ripenessBitmap);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -237,7 +240,7 @@ public class RipenessActivity extends AppCompatActivity {
     }
 
     private void openFruitOptionDialog(String fruitName) {
-        informationDialog.setContentView(R.layout.information_layout);
+        informationDialog.setContentView(R.layout.fruit_information);
         makeDialogBackgroundTransparent(informationDialog);
         enableOutsideTouchOnDialog();
 
@@ -310,5 +313,24 @@ public class RipenessActivity extends AppCompatActivity {
 
     private View getRootView() {
         return getWindow().getDecorView().getRootView();
+    }
+
+    private void saveBitmapToSharedPreference(Bitmap bitmap) {
+        String storedBitmaps = StartingActivity.sharedPreferences.getString("bitmaps", "");
+
+        // convert bitmap to string
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 99, byteArrayOutputStream);
+        String stringBitmap = new String(Base64.encodeToString(byteArrayOutputStream.toByteArray(), Base64.DEFAULT));
+
+        if(!storedBitmaps.equals("")) {
+            storedBitmaps += ("DES01" + stringBitmap);
+        } else {
+            storedBitmaps = stringBitmap;
+        }
+
+        SharedPreferences.Editor editor = StartingActivity.sharedPreferences.edit();
+        editor.putString("bitmaps", storedBitmaps);
+        editor.apply();
     }
 }
