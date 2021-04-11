@@ -46,6 +46,7 @@ import java.util.Map;
 public class RipenessActivity extends AppCompatActivity {
     private static final int INPUT_SIZE = 150;
     private static final int MAX_TIMEOUT_DURATION = 120000;
+    public static final float MINIMUM_CONFIDENCE_TF_OD_API = 0.5f;
 
     private ImageView screenImage;
     private RequestQueue mQueue;

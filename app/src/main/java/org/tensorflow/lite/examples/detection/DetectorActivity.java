@@ -57,6 +57,8 @@ import org.tensorflow.lite.examples.detection.env.Logger;
 import org.tensorflow.lite.examples.detection.env.Utils;
 import org.tensorflow.lite.examples.detection.tflite.Detector;
 import org.tensorflow.lite.examples.detection.tflite.TFLiteObjectDetectionAPIModel;
+import org.tensorflow.lite.examples.detection.tflite.Classifier;
+import org.tensorflow.lite.examples.detection.tflite.YoloV4Classifier;
 import org.tensorflow.lite.examples.detection.tracking.MultiBoxTracker;
 
 /**
@@ -67,11 +69,11 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   private static final Logger LOGGER = new Logger();
 
   // Configuration values for the prepackaged SSD model.
-  private static final int TF_OD_API_INPUT_SIZE = 300;
+  private static final int TF_OD_API_INPUT_SIZE = 416;
   private static final boolean TF_OD_API_IS_QUANTIZED = false;
-  private static final String TF_OD_API_MODEL_FILE = "fyp_metadata_test_2.tflite";
+  private static final String TF_OD_API_MODEL_FILE = "yolo-fastest.tflite";
   // private static final String TF_OD_API_MODEL_FILE = "yolo-fastest_metadata.tflite";
-  private static final String TF_OD_API_LABELS_FILE = "label_map.txt";
+  private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/coco.txt";
   // private static final String TF_OD_API_LABELS_FILE = "classes.txt";
   private static final DetectorMode MODE = DetectorMode.TF_OD_API;
   // Minimum detection confidence to track a detection.
@@ -83,7 +85,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   OverlayView trackingOverlay;
   private Integer sensorOrientation;
 
-  private Detector detector;
+  private Classifier detector;
 
   private long lastProcessingTimeMs;
   private Bitmap rgbFrameBitmap = null;
@@ -101,7 +103,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
   private BorderedText borderedText;
 
-  private List<Detector.Recognition> boxes = null;
+  private List<Classifier.Recognition> boxes = null;
 
   private RectF detectedBox = null;
 
@@ -123,12 +125,18 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
     try {
       detector =
-          TFLiteObjectDetectionAPIModel.create(
-              this,
-              TF_OD_API_MODEL_FILE,
-              TF_OD_API_LABELS_FILE,
-              TF_OD_API_INPUT_SIZE,
-              TF_OD_API_IS_QUANTIZED);
+              YoloV4Classifier.create(
+                      getAssets(),
+                      TF_OD_API_MODEL_FILE,
+                      TF_OD_API_LABELS_FILE,
+                      TF_OD_API_IS_QUANTIZED);
+//      detector =
+//          TFLiteObjectDetectionAPIModel.create(
+//              this,
+//              TF_OD_API_MODEL_FILE,
+//              TF_OD_API_LABELS_FILE,
+//              TF_OD_API_INPUT_SIZE,
+//              TF_OD_API_IS_QUANTIZED);
       cropSize = TF_OD_API_INPUT_SIZE;
     } catch (final IOException e) {
       e.printStackTrace();
@@ -205,7 +213,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
           public void run() {
             // LOGGER.i("Running detection on image " + currTimestamp);
             final long startTime = SystemClock.uptimeMillis();
-            final List<Detector.Recognition> results = detector.recognizeImage(croppedBitmap);
+            final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap);
             lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
             cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
@@ -222,10 +230,10 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                 break;
             }
 
-            final List<Detector.Recognition> mappedRecognitions =
-                new ArrayList<Detector.Recognition>();
+            final List<Classifier.Recognition> mappedRecognitions =
+                new ArrayList<Classifier.Recognition>();
 
-            for (final Detector.Recognition result : results) {
+            for (final Classifier.Recognition result : results) {
               final RectF location = result.getLocation();
               if (location != null && result.getConfidence() >= minimumConfidence) {
                 canvas.drawRect(location, paint);
@@ -299,7 +307,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         Bitmap selectedBitmap = null;
         float leftRatio = -1, topRatio = -1, rightRatio = -1, bottomRatio = -1;
         if(boxes != null) {
-          for (final Detector.Recognition box : boxes) {
+          for (final Classifier.Recognition box : boxes) {
             final RectF location = box.getLocation(); // location of the box
 
             // there is a problem in output boxes produced by the model
