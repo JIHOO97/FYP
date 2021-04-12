@@ -7,7 +7,8 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        >
 
         <ImageView
             android:id="@+id/prototype_image"
@@ -15,9 +16,7 @@
             android:layout_height="wrap_content"
             android:src="@drawable/info_background"
             android:adjustViewBounds="true"
-            android:scaleType="centerCrop"
-            android:padding="50dp"
-            android:background="#E9E9E9"/>
+            android:scaleType="centerCrop"/>
 
     </RelativeLayout>
 
@@ -26,6 +25,7 @@
         android:layout_width="match_parent"
         android:layout_height="170dp"
         android:background="@drawable/bottom_sheet_bg"
+        android:fontFamily="@font/roboto_bold"
         android:layout_above="@+id/indicator"/>
 
     <me.relex.circleindicator.CircleIndicator3
