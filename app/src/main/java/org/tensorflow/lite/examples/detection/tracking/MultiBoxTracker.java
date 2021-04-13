@@ -36,6 +36,7 @@ import org.tensorflow.lite.examples.detection.env.BorderedText;
 import org.tensorflow.lite.examples.detection.env.ImageUtils;
 import org.tensorflow.lite.examples.detection.env.Logger;
 import org.tensorflow.lite.examples.detection.tflite.Classifier.Recognition;
+import org.tensorflow.lite.examples.detection.tflite.Detector;
 
 /** A tracker that handles non-max suppression and matches existing objects to new detections. */
 public class MultiBoxTracker {
@@ -122,7 +123,7 @@ public class MultiBoxTracker {
     }
   }
 
-  public synchronized void trackResults(final List<Recognition> results, final long timestamp) {
+  public synchronized void trackResults(final List<Detector.Recognition> results, final long timestamp) {
     // logger.i("Processing %d results from %d", results.size(), timestamp);
     processResults(results);
   }
@@ -183,13 +184,13 @@ public class MultiBoxTracker {
     }
   }
 
-  private void processResults(final List<Recognition> results) {
-    final List<Pair<Float, Recognition>> rectsToTrack = new LinkedList<Pair<Float, Recognition>>();
+  private void processResults(final List<Detector.Recognition> results) {
+    final List<Pair<Float, Detector.Recognition>> rectsToTrack = new LinkedList<Pair<Float, Detector.Recognition>>();
 
     screenRects.clear();
     final Matrix rgbFrameToScreen = new Matrix(getFrameToCanvasMatrix());
 
-    for (final Recognition result : results) {
+    for (final Detector.Recognition result : results) {
       if (result.getLocation() == null) {
         continue;
       }
@@ -208,7 +209,7 @@ public class MultiBoxTracker {
         continue;
       }
 
-      rectsToTrack.add(new Pair<Float, Recognition>(result.getConfidence(), result));
+      rectsToTrack.add(new Pair<Float, Detector.Recognition>(result.getConfidence(), result));
     }
 
     trackedObjects.clear();
@@ -217,7 +218,7 @@ public class MultiBoxTracker {
       return;
     }
 
-    for (final Pair<Float, Recognition> potential : rectsToTrack) {
+    for (final Pair<Float, Detector.Recognition> potential : rectsToTrack) {
       final TrackedRecognition trackedRecognition = new TrackedRecognition();
       trackedRecognition.detectionConfidence = potential.first;
       trackedRecognition.location = new RectF(potential.second.getLocation());

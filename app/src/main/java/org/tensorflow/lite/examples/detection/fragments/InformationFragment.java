@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.Image;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -33,10 +34,10 @@ public class InformationFragment extends Fragment {
     ImageView imageView;
 
     String[] titles = {"Welcome!", "Center!", "Focus on the objects", "Notice!"};
-    String[] details = {"Your presence in DES01 is our honor.\nDES01 helps you to identify 5 kinds of\nfruits about their ripeness",
-                        "Take centered, well-lit photos of leaf, flowers, fruits!",
-                        "Make sure that the focus is on the\nphotographed organ and not on the\nbackground of the image",
-                        "Don't snap plants that are too far of frame or\nplant not belonging to the desired species\n(pot,ruler,etc.)"};
+    String[] details = {"Thank you for using fripe.\nfripe helps you to identify 4 kinds of\nfruits about their ripeness",
+                        "Take centered, well-lit photos of apple, mango,\norange, and tomato!",
+                        "Make sure that the focus is on the fruit itself\nand not on the background of the image",
+                        "Don't snap fruits that are too far of frame or\nfruit not belonging to the desired species\n(pot,ruler,etc.)"};
 
     @Nullable
     @Override

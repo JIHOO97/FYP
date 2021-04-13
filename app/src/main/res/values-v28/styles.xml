@@ -12,5 +12,8 @@
         <item name="colorPrimary">@color/tfe_color_primary</item>
         <item name="colorPrimaryDark">#fecb3a</item>
         <item name="colorAccent">@color/tfe_color_accent</item>
+
+        <!--splash screen-->
+        <item name="android:windowBackground">@drawable/splash_screen</item>
     </style>
 </resources>

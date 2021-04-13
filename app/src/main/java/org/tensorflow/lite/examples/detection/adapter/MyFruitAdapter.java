@@ -56,18 +56,21 @@ public class MyFruitAdapter extends RecyclerView.Adapter<MyFruitAdapter.CustomVi
     public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
         holder.savedFruitImage.setImageBitmap(this.bitmapList.get(position));
 
-
         holder.deleteImg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 removeItem(holder.getAdapterPosition());
+                Log.d("myFruitAdapter", "removing position is: " + holder.getAdapterPosition());
             }
         });
 
         holder.savedFruitImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                openMyFruitDialog(bitmapList.get(position));
+                Log.d("myFruitAdapter", "selectedPosition is: " + position);
+                if(position < bitmapList.size()) {
+                    openMyFruitDialog(bitmapList.get(position));
+                }
             }
         });
     }
@@ -75,6 +78,11 @@ public class MyFruitAdapter extends RecyclerView.Adapter<MyFruitAdapter.CustomVi
     @Override
     public int getItemCount() {
         return bitmapList.size();
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return position;
     }
 
     public class CustomViewHolder extends RecyclerView.ViewHolder {

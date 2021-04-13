@@ -10,6 +10,8 @@ import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
@@ -187,15 +189,25 @@ public class RipenessActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                float leftRatio = croppedBoxRatios[0];
-                float topRatio = croppedBoxRatios[1];
+//                float leftRatio = croppedBoxRatios[0];
+//                float topRatio = croppedBoxRatios[1];
 
-                Canvas canvas = new Canvas(ripenessBitmap);
-                canvas.drawText("Ripeness is: " + ripeness, leftRatio*300, topRatio*300, paint);
-                screenImage.setImageBitmap(ripenessBitmap);
+//                Canvas canvas = new Canvas(ripenessBitmap);
+//                canvas.drawText("Ripeness is: " + ripeness, leftRatio*300, topRatio*300, paint);
+//                screenImage.setImageBitmap(ripenessBitmap);
+
+                TextView ripenessPercentage = findViewById(R.id.ripeness_percentage);
+                ripenessPercentage.setText(ripeness);
 
                 // save screenImage to sharedpreference
-                saveBitmapToSharedPreference(ripenessBitmap);
+                final Handler handler = new Handler(Looper.getMainLooper());
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Bitmap currentScreenBitmap = takeScreenShot(getRootView());
+                        saveBitmapToSharedPreference(currentScreenBitmap);
+                    }
+                }, 1000);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -232,10 +244,10 @@ public class RipenessActivity extends AppCompatActivity {
         }
 
         float floatRipePercentage = Float.parseFloat(ripePercentage);
-        floatRipePercentage = (float) ((float)Math.floor(floatRipePercentage * 1000d) / 1000d);
+        // floatRipePercentage = (float) ((float)Math.round(floatRipePercentage * 100d) / 100d);
         floatRipePercentage *= 100;
 
-        ripePercentage = String.valueOf(floatRipePercentage);
+        ripePercentage = String.format("%.2f", floatRipePercentage);
 
         return ripePercentage + "%";
     }
@@ -268,13 +280,14 @@ public class RipenessActivity extends AppCompatActivity {
                 goodContent = "- High Vitamin C\n- Healthy immune system\n- Prevents skin damange\n- Lowers cholesterol\n- Controls blood sugar level";
 
                 break;
-            case "Peach":
-
-
-                break;
             case "Tomato":
                 break;
             case "Mango":
+                unripeFruitName = "Eating unripe mango in excess may cause";
+                unripeContent = "- Throat irritation\n- Indigestion\n- Dysentery\n- Adbominal colic";
+                goodFruitName = "How are mangoes good for your health?";
+                goodContent = "- High antioxidants\n- Boost immunity\n- Improve digestive Health\n- Support eye and heart health";
+
                 break;
         }
 
@@ -333,5 +346,21 @@ public class RipenessActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = StartingActivity.sharedPreferences.edit();
         editor.putString("bitmaps", storedBitmaps);
         editor.apply();
+    }
+
+    public Bitmap takeScreenShot(View view) {
+        // configuramos para que la view almacene la cache en una imagen
+        view.setDrawingCacheEnabled(true);
+        view.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
+        view.buildDrawingCache();
+
+        if(view.getDrawingCache() == null) return null; // Verificamos antes de que no sea null
+
+        // utilizamos esa cache, para crear el bitmap que tendra la imagen de la view actual
+        Bitmap snapshot = Bitmap.createBitmap(view.getDrawingCache());
+        view.setDrawingCacheEnabled(false);
+        view.destroyDrawingCache();
+
+        return snapshot;
     }
 }

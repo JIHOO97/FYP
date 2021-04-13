@@ -9,12 +9,10 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="50dp"
-        android:background="@drawable/circle_shadow"
-        android:elevation="10dp"
-        android:padding="10dp"
         android:fontFamily="@font/roboto_bold"
+        android:padding="10dp"
         android:text="Recently Detected Fruits"
-        android:textColor="#F44336"
+        android:textColor="#fff"
         android:textSize="26sp" />
 
     <androidx.recyclerview.widget.RecyclerView

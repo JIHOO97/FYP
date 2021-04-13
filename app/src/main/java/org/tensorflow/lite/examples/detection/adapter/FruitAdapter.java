@@ -2,6 +2,7 @@ package org.tensorflow.lite.examples.detection.adapter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,6 +35,7 @@ public class FruitAdapter extends ArrayAdapter<String> {
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View rowView = inflater.inflate(R.layout.item_layout_dialog, parent, false);
         TextView fruitName = rowView.findViewById(R.id.fruit_name);
+        fruitName.setTextColor(Color.WHITE);
         String fruit = userList[position];
 
         fruitName.setText(fruit);
