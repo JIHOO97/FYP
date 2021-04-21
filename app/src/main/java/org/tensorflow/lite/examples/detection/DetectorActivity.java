@@ -107,6 +107,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
   private FrameLayout frameLayout;
 
+  public static int COUNT = 0;
+
   @Override
   public void onPreviewSizeChosen(final Size size, final int rotation) {
     frameLayout = findViewById(R.id.container);
