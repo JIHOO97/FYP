@@ -81,6 +81,38 @@ public class HomeFragment extends Fragment {
                 bitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), selectedImage);
                 // make the size of the cropped image to 300x300 to fit our model
                 Bitmap croppedBitmap = Utils.processBitmap(bitmap, 300);
+
+                // output the image
+//                int[] croppedFruitPixels = new int[300 * 300];
+//                croppedBitmap.getPixels(croppedFruitPixels, 0, croppedBitmap.getWidth(), 0, 0, croppedBitmap.getWidth(), croppedBitmap.getHeight());
+//
+//                int pixel = 0;
+//                int[][][][] ripenessInputArray = new int[1][300][300][3];
+//
+//                for (int i = 0; i < 300; ++i) {
+//                    for (int j = 0; j < 300; ++j) {
+//                        int index = 0;
+//                        final int val = croppedFruitPixels[pixel++];
+//                        ripenessInputArray[0][i][j][index++] = (((val >> 16) & 0xFF));
+//                        ripenessInputArray[0][i][j][index++] = (((val >> 8) & 0xFF));
+//                        ripenessInputArray[0][i][j][index++] = ((val & 0xFF));
+//                        // Log.d("RipenessFruitArray", "[" + )
+//                    }
+//                }
+//
+//                int index = 0;
+//                for(int i = 0; i < 300; i++)
+//                {
+//                    for(int j = 0; j < 300; j++)
+//                    {
+//                        for(int r = 0; r < 3; r++)
+//                        {
+//                            System.out.print(ripenessInputArray[0][i][j][r] + " ");
+//                        }
+//                        System.out.println();
+//                    }
+//                }
+
                 ImageUtils.saveBitmap(bitmap, "screenshot.jpg");
                 ImageUtils.saveBitmap(croppedBitmap, "croppedFruit.jpg");
                 float[] temp = new float[2];

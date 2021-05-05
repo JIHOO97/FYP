@@ -99,39 +99,12 @@ public class RipenessActivity extends AppCompatActivity {
 
         // send request to server
         mQueue = Volley.newRequestQueue(this);
-        // getRipeness(fruitArrayToObject);
-
-        TextView ripenessPercentage = findViewById(R.id.ripeness_percentage);
-
-        final Handler handler2 = new Handler(Looper.getMainLooper());
-        handler2.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                loadingDialog.dismissDialog();
-
-                if(DetectorActivity.COUNT == 0) {
-                    ripenessPercentage.setText("93.56%");
-                    DetectorActivity.COUNT++;
-                } else {
-                    ripenessPercentage.setText("89.23%");
-                }
-            }
-        }, 4000);
-
-        // save screenImage to sharedpreference
-        final Handler handler = new Handler(Looper.getMainLooper());
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Bitmap currentScreenBitmap = takeScreenShot(getRootView());
-                saveBitmapToSharedPreference(currentScreenBitmap);
-            }
-        }, 1000);
+        getRipeness(fruitArrayToObject);
 
         // set the paint to draw text
-        paint = new Paint();
-        paint.setColor(Color.BLUE); // Text Color
-        paint.setTextSize(12); // Text Size
+        paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(Color.rgb(254,203,58)); // Text Color
+        paint.setStrokeWidth(5 / getResources().getDisplayMetrics().density);
     }
 
     private Bitmap loadFruitBitmap(String filename) {
@@ -217,15 +190,39 @@ public class RipenessActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-//                float leftRatio = croppedBoxRatios[0];
-//                float topRatio = croppedBoxRatios[1];
-
-//                Canvas canvas = new Canvas(ripenessBitmap);
-//                canvas.drawText("Ripeness is: " + ripeness, leftRatio*300, topRatio*300, paint);
-//                screenImage.setImageBitmap(ripenessBitmap);
-
                 TextView ripenessPercentage = findViewById(R.id.ripeness_percentage);
                 ripenessPercentage.setText(ripeness);
+
+                if(croppedBoxRatios.length == 4) {
+                    float leftRatio = croppedBoxRatios[0];
+                    float topRatio = croppedBoxRatios[1];
+                    float rightRatio = croppedBoxRatios[2];
+                    float bottomRatio = croppedBoxRatios[3];
+
+                    float[] pnts = new float[16];
+                    pnts[0] = leftRatio*300;
+                    pnts[1] = topRatio*300;
+                    pnts[2] = rightRatio*300;
+                    pnts[3] = topRatio*300;
+                    pnts[4] = leftRatio*300;
+                    pnts[5] = bottomRatio*300;
+                    pnts[6] = rightRatio*300;
+                    pnts[7] = bottomRatio*300;
+
+                    pnts[8] = leftRatio*300;
+                    pnts[9] = topRatio*300;
+                    pnts[10] = leftRatio*300;
+                    pnts[11] = bottomRatio*300;
+                    pnts[12] = rightRatio*300;
+                    pnts[13] = topRatio*300;
+                    pnts[14] = rightRatio*300;
+                    pnts[15] = bottomRatio*300;
+
+                    Canvas canvas = new Canvas(ripenessBitmap);
+                    canvas.drawLines(pnts, 0, 16, paint);
+                    // canvas.drawRect(leftRatio*300, topRatio*300, rightRatio*300, bottomRatio*300,paint);
+                    screenImage.setImageBitmap(ripenessBitmap);
+                }
 
                 // save screenImage to sharedpreference
                 final Handler handler = new Handler(Looper.getMainLooper());
@@ -309,6 +306,11 @@ public class RipenessActivity extends AppCompatActivity {
 
                 break;
             case "Tomato":
+                unripeFruitName = "Unripe tomato contains tomatine and solanine which are toxic that may";
+                unripeContent = "- Cause fever\n- Cause abdominal pain\n- Cause diarrhea\n- Cause vomiting";
+                goodFruitName = "How are tomatoes good for your health?";
+                goodContent = "- Reduce heart disease\n- Reduce cancer\n- Great source of vitamin C\n- Great source of potassium";
+
                 break;
             case "Mango":
                 unripeFruitName = "Eating unripe mango in excess may cause";

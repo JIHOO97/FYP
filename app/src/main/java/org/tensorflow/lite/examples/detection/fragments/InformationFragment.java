@@ -33,11 +33,12 @@ public class InformationFragment extends Fragment {
     ViewPager2 viewPager2;
     ImageView imageView;
 
-    String[] titles = {"Welcome!", "Center!", "Focus on the objects", "Notice!"};
+    String[] titles = {"Welcome!", "Center!", "Focus on the objects", "Notice!", "Update!"};
     String[] details = {"Thank you for using fripe.\nfripe helps you to identify 4 kinds of\nfruits about their ripeness",
                         "Take centered, well-lit photos of apple, mango,\norange, and tomato!",
                         "Make sure that the focus is on the fruit itself\nand not on the background of the image",
-                        "Don't snap fruits that are too far of frame or\nfruit not belonging to the desired species\n(pot,ruler,etc.)"};
+                        "Don't snap fruits that are too far of frame or\nfruit not belonging to the desired species\n(pot,ruler,etc.)",
+                        "Peach, Lemon, Strawberry, Tomato, and Watermelon\nare coming soon. Even more fruits will be updated\nin the future."};
 
     @Nullable
     @Override
