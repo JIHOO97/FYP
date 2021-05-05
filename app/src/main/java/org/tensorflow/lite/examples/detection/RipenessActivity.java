@@ -163,7 +163,8 @@ public class RipenessActivity extends AppCompatActivity {
 
     private void getRipeness(JSONObject jsonFruitObject) {
 //        String url = "http://192.168.200.102:5000";
-        String url = "http://192.168.55.120:5000";
+        // String url = "http://192.168.55.120:5000";
+        String url = "http://143.89.130.29:5000";
 
         Log.d("RipenessServer", "Sending Request...");
 
