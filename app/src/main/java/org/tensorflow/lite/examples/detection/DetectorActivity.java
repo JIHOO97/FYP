@@ -373,7 +373,6 @@
                 dialog.dismiss();
 
                 String[] fruits = {"Apple",
-                        "Peach",
                         "Mango",
                         "Orange",
                         "Tomato"};
@@ -387,13 +386,26 @@
             selectedFruitTrue.setOnClickListener(new View.OnClickListener() {
               @Override
               public void onClick(View view) {
-                // send cropped data to the server
-                goToRipenessActivity(fruit, croppedBoxRatios);
-                dialog.dismiss();
+                if(fruit.equals("Peach") || fruit.equals("Strawberry") || fruit.equals("Watermelon") || fruit.equals("Lemon")) {
+                    dialog.dismiss();
+                    openComingSoonDialog();
+                }
+                else {
+                    // send cropped data to the server
+                    goToRipenessActivity(fruit, croppedBoxRatios);
+                    dialog.dismiss();
+                }
               }
             });
 
             dialog.show();
+          }
+
+          private void openComingSoonDialog() {
+              final Dialog dialog = new Dialog(this);
+              dialog.setContentView(R.layout.coming_soon_dialog);
+              makeDialogBackgroundTransparent(dialog);
+              dialog.show();
           }
 
           private void openFruitOptionDialog(String[] fruits, float[] croppedBoxRatios) {
