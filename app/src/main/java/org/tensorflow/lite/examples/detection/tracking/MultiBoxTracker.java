@@ -35,6 +35,7 @@ import java.util.Queue;
 import org.tensorflow.lite.examples.detection.env.BorderedText;
 import org.tensorflow.lite.examples.detection.env.ImageUtils;
 import org.tensorflow.lite.examples.detection.env.Logger;
+import org.tensorflow.lite.examples.detection.tflite.Classifier;
 import org.tensorflow.lite.examples.detection.tflite.Classifier.Recognition;
 import org.tensorflow.lite.examples.detection.tflite.Detector;
 
@@ -123,7 +124,7 @@ public class MultiBoxTracker {
     }
   }
 
-  public synchronized void trackResults(final List<Detector.Recognition> results, final long timestamp) {
+  public synchronized void trackResults(final List<Classifier.Recognition> results, final long timestamp) {
     // logger.i("Processing %d results from %d", results.size(), timestamp);
     processResults(results);
   }
@@ -184,13 +185,13 @@ public class MultiBoxTracker {
     }
   }
 
-  private void processResults(final List<Detector.Recognition> results) {
-    final List<Pair<Float, Detector.Recognition>> rectsToTrack = new LinkedList<Pair<Float, Detector.Recognition>>();
+  private void processResults(final List<Classifier.Recognition> results) {
+    final List<Pair<Float, Classifier.Recognition>> rectsToTrack = new LinkedList<Pair<Float, Classifier.Recognition>>();
 
     screenRects.clear();
     final Matrix rgbFrameToScreen = new Matrix(getFrameToCanvasMatrix());
 
-    for (final Detector.Recognition result : results) {
+    for (final Classifier.Recognition result : results) {
       if (result.getLocation() == null) {
         continue;
       }
@@ -209,7 +210,7 @@ public class MultiBoxTracker {
         continue;
       }
 
-      rectsToTrack.add(new Pair<Float, Detector.Recognition>(result.getConfidence(), result));
+      rectsToTrack.add(new Pair<Float, Classifier.Recognition>(result.getConfidence(), result));
     }
 
     trackedObjects.clear();
@@ -218,7 +219,7 @@ public class MultiBoxTracker {
       return;
     }
 
-    for (final Pair<Float, Detector.Recognition> potential : rectsToTrack) {
+    for (final Pair<Float, Classifier.Recognition> potential : rectsToTrack) {
       final TrackedRecognition trackedRecognition = new TrackedRecognition();
       trackedRecognition.detectionConfidence = potential.first;
       trackedRecognition.location = new RectF(potential.second.getLocation());
