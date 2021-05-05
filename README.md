@@ -1,4 +1,4 @@
-# TensorFlow Lite Object Detection Android Demo
+# How to run Fripe
 
 ### Overview
 
