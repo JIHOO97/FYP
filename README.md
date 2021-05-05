@@ -49,6 +49,11 @@ Application can run either on device or emulator.
 In \app\src\main\java\org\tensorflow\lite\examples\detection\tflite\YoloV4Classifier.java, make sure that the variable
 isTiny is equal to **TRUE**. This will allow you to run the most updated and efficient yolo-fastest model.
 
+### Ripeness Activity
+This file is for finding the ripeness of a fruit. It also controls the communication with the server for getting ripeness data back.
+
+### Detector Activty
+This controls the communication between the model and the camera.
 
 ### Model used
 
@@ -57,5 +62,5 @@ automatically by download.gradle.
 
 ### Additional Note
 
-_Please do not delete the assets folder content_._Without the assets folder,
+_Please do not delete the assets folder content_._ Without the assets folder,
 it is not possible to run the model._
