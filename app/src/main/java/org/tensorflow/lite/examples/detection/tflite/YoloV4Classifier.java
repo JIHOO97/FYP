@@ -236,7 +236,7 @@ public class YoloV4Classifier implements Classifier {
         return nmsList;
     }
 
-    protected float mNmsThresh = 0.01f;
+    protected float mNmsThresh = 0.25f;
 
     protected float box_iou(RectF a, RectF b) {
         return box_intersection(a, b) / box_union(a, b);
@@ -423,9 +423,7 @@ public class YoloV4Classifier implements Classifier {
         int detectedClass = 0;
         tfLite.runForMultipleInputsOutputs(inputArray, outputMap);
 
-        double test = (1/(1 + Math.exp(-0.3)));
-
-        int anchors[] = {79,114,  95,119, 102,139,147,118,  95,185, 126,162};
+        int anchors[][] = {{109,152, 179,113, 391,396}, {73, 39, 107, 60,  90,119}};
 
         int gridWidth = OUTPUT_WIDTH_TINY[0];
         float[][][][] bboxes = (float [][][][]) outputMap.get(0);
@@ -545,16 +543,19 @@ public class YoloV4Classifier implements Classifier {
             for(int j = 0; j < 3; j++)
             {
                 objectness = new_box[row][col][j][4];
+
+
                 if(objectness > 0.5)
                 {
+
                     float x = new_box[row][col][j][0];
                     float y = new_box[row][col][j][1];
                     float w = new_box[row][col][j][2];
                     float h = new_box[row][col][j][3];
                     x = (col + x) / 13;
                     y = (row + y) / 13;
-                    w = (float) (anchors[2*j+0]*Math.exp(w) / 416);
-                    h = (float) (anchors[2*j+1]*Math.exp(h) / 416);
+                    w = (float) (anchors[0][2*j+0]*Math.exp(w) / 416);
+                    h = (float) (anchors[0][2*j+1]*Math.exp(h) / 416);
 
                     final RectF rectF = new RectF(
                             Math.max(0, (x - w / 2)*bitmap.getWidth()),
@@ -581,6 +582,7 @@ public class YoloV4Classifier implements Classifier {
                             detectedClass = r;
                         }
                     }
+                    Log.v("Objectness", labels.get(detectedClass));
                     detections.add(new Recognition("" + i, labels.get(detectedClass),objectness,rectF,detectedClass ));
                 }
             }
@@ -591,8 +593,6 @@ public class YoloV4Classifier implements Classifier {
         {
             int row = i / 26;
             int col = i % 26;
-
-            Log.v("COUNT", String.valueOf(i));
 
             for(int j = 0; j < 3; j++)
             {
@@ -605,8 +605,8 @@ public class YoloV4Classifier implements Classifier {
                     float h = new_box2[row][col][j][3];
                     x = (col + x) / 26;
                     y = (row + y) / 26;
-                    w = (float) (anchors[2*j+5]*Math.exp(w) / 416);
-                    h = (float) (anchors[2*j+6]*Math.exp(h) / 416);
+                    w = (float) (anchors[1][2*j+0]*Math.exp(w) / 416);
+                    h = (float) (anchors[1][2*j+1]*Math.exp(h) / 416);
                     final RectF rectF = new RectF(
                         Math.max(0, (x - w / 2)*bitmap.getWidth()),
                         Math.max(0, (y - h / 2)*bitmap.getHeight()),

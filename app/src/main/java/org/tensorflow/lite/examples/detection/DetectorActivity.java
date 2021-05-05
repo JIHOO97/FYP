@@ -1,63 +1,65 @@
-/*
- * Copyright 2019 The TensorFlow Authors. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+        /*
+         * Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+         *
+         * Licensed under the Apache License, Version 2.0 (the "License");
+         * you may not use this file except in compliance with the License.
+         * You may obtain a copy of the License at
+         *
+         *       http://www.apache.org/licenses/LICENSE-2.0
+         *
+         * Unless required by applicable law or agreed to in writing, software
+         * distributed under the License is distributed on an "AS IS" BASIS,
+         * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+         * See the License for the specific language governing permissions and
+         * limitations under the License.
+         */
 
-package org.tensorflow.lite.examples.detection;
+        package org.tensorflow.lite.examples.detection;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.Config;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.graphics.Paint.Style;
-import android.graphics.RectF;
-import android.graphics.Typeface;
-import android.graphics.drawable.ColorDrawable;
-import android.media.ImageReader.OnImageAvailableListener;
-import android.os.SystemClock;
-import android.util.Log;
-import android.util.Size;
-import android.util.TypedValue;
-import android.view.MotionEvent;
-import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
+        import android.app.AlertDialog;
+        import android.app.Dialog;
+        import android.content.Intent;
+        import android.graphics.Bitmap;
+        import android.graphics.Bitmap.Config;
+        import android.graphics.Canvas;
+        import android.graphics.Color;
+        import android.graphics.Matrix;
+        import android.graphics.Paint;
+        import android.graphics.Paint.Style;
+        import android.graphics.RectF;
+        import android.graphics.Typeface;
+        import android.graphics.drawable.ColorDrawable;
+        import android.media.ImageReader.OnImageAvailableListener;
+        import android.os.SystemClock;
+        import android.util.Log;
+        import android.util.Size;
+        import android.util.TypedValue;
+        import android.view.MotionEvent;
+        import android.view.View;
+        import android.widget.ArrayAdapter;
+        import android.widget.Button;
+        import android.widget.FrameLayout;
+        import android.widget.ImageView;
+        import android.widget.ListView;
+        import android.widget.TextView;
+        import android.widget.Toast;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+        import java.io.IOException;
+        import java.util.ArrayList;
+        import java.util.List;
 
-import org.tensorflow.lite.examples.detection.adapter.FruitAdapter;
-import org.tensorflow.lite.examples.detection.customview.OverlayView;
-import org.tensorflow.lite.examples.detection.customview.OverlayView.DrawCallback;
-import org.tensorflow.lite.examples.detection.env.BorderedText;
-import org.tensorflow.lite.examples.detection.env.ImageUtils;
-import org.tensorflow.lite.examples.detection.env.Logger;
-import org.tensorflow.lite.examples.detection.env.Utils;
-import org.tensorflow.lite.examples.detection.tflite.Detector;
-import org.tensorflow.lite.examples.detection.tflite.TFLiteObjectDetectionAPIModel;
-import org.tensorflow.lite.examples.detection.tracking.MultiBoxTracker;
+        import org.tensorflow.lite.examples.detection.adapter.FruitAdapter;
+        import org.tensorflow.lite.examples.detection.customview.OverlayView;
+        import org.tensorflow.lite.examples.detection.customview.OverlayView.DrawCallback;
+        import org.tensorflow.lite.examples.detection.env.BorderedText;
+        import org.tensorflow.lite.examples.detection.env.ImageUtils;
+        import org.tensorflow.lite.examples.detection.env.Logger;
+        import org.tensorflow.lite.examples.detection.env.Utils;
+        import org.tensorflow.lite.examples.detection.tflite.Detector;
+        import org.tensorflow.lite.examples.detection.tflite.TFLiteObjectDetectionAPIModel;
+        import org.tensorflow.lite.examples.detection.tflite.Classifier;
+        import org.tensorflow.lite.examples.detection.tflite.YoloV4Classifier;
+        import org.tensorflow.lite.examples.detection.tracking.MultiBoxTracker;
 
 /**
  * An activity that uses a TensorFlowMultiBoxDetector and ObjectTracker to detect and then track
@@ -67,11 +69,11 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   private static final Logger LOGGER = new Logger();
 
   // Configuration values for the prepackaged SSD model.
-  private static final int TF_OD_API_INPUT_SIZE = 300;
+  private static final int TF_OD_API_INPUT_SIZE = 416;
   private static final boolean TF_OD_API_IS_QUANTIZED = false;
-  private static final String TF_OD_API_MODEL_FILE = "fyp_metadata_test_2.tflite";
+  private static final String TF_OD_API_MODEL_FILE = "yolo-fastest-final.tflite";
   // private static final String TF_OD_API_MODEL_FILE = "yolo-fastest_metadata.tflite";
-  private static final String TF_OD_API_LABELS_FILE = "label_map.txt";
+  private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/coco.txt";
   // private static final String TF_OD_API_LABELS_FILE = "classes.txt";
   private static final DetectorMode MODE = DetectorMode.TF_OD_API;
   // Minimum detection confidence to track a detection.
@@ -83,7 +85,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   OverlayView trackingOverlay;
   private Integer sensorOrientation;
 
-  private Detector detector;
+  private Classifier detector;
 
   private long lastProcessingTimeMs;
   private Bitmap rgbFrameBitmap = null;
@@ -101,7 +103,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
   private BorderedText borderedText;
 
-  private List<Detector.Recognition> boxes = null;
+  private List<Classifier.Recognition> boxes = null;
 
   private RectF detectedBox = null;
 
@@ -123,12 +125,18 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
     try {
       detector =
-              TFLiteObjectDetectionAPIModel.create(
-                      this,
+              YoloV4Classifier.create(
+                      getAssets(),
                       TF_OD_API_MODEL_FILE,
                       TF_OD_API_LABELS_FILE,
-                      TF_OD_API_INPUT_SIZE,
                       TF_OD_API_IS_QUANTIZED);
+//      detector =
+//          TFLiteObjectDetectionAPIModel.create(
+//              this,
+//              TF_OD_API_MODEL_FILE,
+//              TF_OD_API_LABELS_FILE,
+//              TF_OD_API_INPUT_SIZE,
+//              TF_OD_API_IS_QUANTIZED);
       cropSize = TF_OD_API_INPUT_SIZE;
     } catch (final IOException e) {
       e.printStackTrace();
@@ -205,7 +213,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
               public void run() {
                 // LOGGER.i("Running detection on image " + currTimestamp);
                 final long startTime = SystemClock.uptimeMillis();
-                final List<Detector.Recognition> results = detector.recognizeImage(croppedBitmap);
+                final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap);
                 lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
                 cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
@@ -222,10 +230,10 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                     break;
                 }
 
-                final List<Detector.Recognition> mappedRecognitions =
-                        new ArrayList<Detector.Recognition>();
+                final List<Classifier.Recognition> mappedRecognitions =
+                        new ArrayList<Classifier.Recognition>();
 
-                for (final Detector.Recognition result : results) {
+                for (final Classifier.Recognition result : results) {
                   final RectF location = result.getLocation();
                   if (location != null && result.getConfidence() >= minimumConfidence) {
                     canvas.drawRect(location, paint);
@@ -299,7 +307,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         Bitmap selectedBitmap = null;
         float leftRatio = -1, topRatio = -1, rightRatio = -1, bottomRatio = -1;
         if(boxes != null) {
-          for (final Detector.Recognition box : boxes) {
+          for (final Classifier.Recognition box : boxes) {
             final RectF location = box.getLocation(); // location of the box
 
             // there is a problem in output boxes produced by the model
@@ -355,9 +363,9 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     makeDialogBackgroundTransparent(dialog);
 
     TextView content = dialog.findViewById(R.id.check_fruit_dialog_content);
-    content.setText("Is this " + fruit + "?");
+    content.setText("Are you sure this is an " + fruit + "?");
 
-    ImageView selectedFruitFalse = dialog.findViewById(R.id.check_fruit_dialog_no);
+    Button selectedFruitFalse = dialog.findViewById(R.id.check_fruit_dialog_no);
     // if the detected fruit is wrong
     selectedFruitFalse.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -365,6 +373,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         dialog.dismiss();
 
         String[] fruits = {"Apple",
+                "Peach",
                 "Mango",
                 "Orange",
                 "Tomato"};
@@ -373,7 +382,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
       }
     });
 
-    ImageView selectedFruitTrue = dialog.findViewById(R.id.check_fruit_dialog_yes);
+    Button selectedFruitTrue = dialog.findViewById(R.id.check_fruit_dialog_yes);
     // if the detected fruit is correct
     selectedFruitTrue.setOnClickListener(new View.OnClickListener() {
       @Override
